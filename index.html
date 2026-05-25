@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="ReadEasy — a mobile app for seniors and people with low vision. Point your camera at the text, and it will be enlarged and read aloud.">
+    <meta name="theme-color" content="#0f0f1a">
+    <meta name="background-color" content="#0f0f1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ReadEasy">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <title>ReadEasy — Text Reader for Low Vision</title>
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+
+    <style>
+        :root {
+            --bg: #0f0f1a;
+            --surface: rgba(255,255,255,0.06);
+            --surface-solid: #1a1a2e;
+            --surface-elevated: #252540;
+            --text: #ffffff;
+            --text-secondary: rgba(255,255,255,0.6);
+            --accent: #7c5cff;
+            --accent-light: #a78bfa;
+            --accent-glow: rgba(124,92,255,0.3);
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --glass: rgba(255,255,255,0.08);
+            --glass-border: rgba(255,255,255,0.12);
+            --shadow: 0 8px 32px rgba(0,0,0,0.4);
+            --radius: 24px;
+            --radius-sm: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg: #f8f7ff;
+            --surface: rgba(255,255,255,0.8);
+            --surface-solid: #ffffff;
+            --surface-elevated: #f0eeff;
+            --text: #1a1a2e;
+            --text-secondary: rgba(26,26,46,0.55);
+            --glass: rgba(255,255,255,0.6);
+            --glass-border: rgba(124,92,255,0.15);
+            --shadow: 0 8px 32px rgba(124,92,255,0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            background: var(--bg);
+            color: var(--text);
+            height: 100%;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* ===== SPLASH SCREEN ===== */
+        #splash {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        #splash.hidden {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+
+        .splash-logo {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            box-shadow: 0 20px 60px var(--accent-glow);
+            animation: splashPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes splashPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .splash-title {
+            margin-top: 28px;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .splash-subtitle {
+            margin-top: 8px;
+            font-size: 18px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .splash-loader {
+            margin-top: 40px;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--surface);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== APP SHELL ===== */
+        #app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        #app.ready { opacity: 1; }
+
+        /* ===== SCREEN SYSTEM ===== */
+        .screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+            animation: screenEnter 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .screen.active { display: flex; }
+
+        @keyframes screenEnter {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ===== CAMERA SCREEN ===== */
+        .camera-screen {
+            position: relative;
+            padding: 0;
+        }
+
+        .camera-viewport {
+            position: relative;
+            flex: 1;
+            background: #000;
+            overflow: hidden;
+            border-radius: 0 0 var(--radius) var(--radius);
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+            pointer-events: none;
+        }
+
+        .camera-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .camera-hint-pill {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 100px;
+            font-size: 15px;
+            font-weight: 600;
+            pointer-events: auto;
+        }
+
+        .camera-zoom-control {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            pointer-events: auto;
+        }
+
+        .zoom-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 44px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 100px;
+            padding: 0 12px;
+            outline: none;
+        }
+
+        .zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+
+        .camera-bottom-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 24px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .fab-capture {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: transform 0.15s, box-shadow 0.3s;
+            pointer-events: auto;
+        }
+
+        .fab-capture:active { transform: scale(0.92); }
+
+        .camera-side-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: var(--transition);
+        }
+
+        .camera-side-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.9); }
+
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 24px;
+            transition: transform 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .nav-item.active .nav-icon { transform: translateY(-2px); }
+
+        /* ===== RESULT SCREEN ===== */
+        .result-screen {
+            padding: 20px;
+            gap: 16px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-title {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .icon-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .icon-btn:active { transform: scale(0.9); background: var(--surface-elevated); }
+
+        .text-card {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .text-content {
+            font-size: var(--font-size, 32px);
+            line-height: 1.7;
+            font-weight: 500;
+            word-wrap: break-word;
+            transition: font-size 0.2s;
+        }
+
+        .text-content .highlight {
+            background: var(--accent-glow);
+            border-radius: 4px;
+            padding: 0 4px;
+        }
+
+        .font-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+        }
+
+        .font-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--surface-elevated);
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .font-btn:active { transform: scale(0.9); }
+
+        .font-label {
+            flex: 1;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .action-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .action-btn {
+            height: 56px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .action-btn:active { transform: scale(0.96); }
+
+        .action-btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .action-btn-secondary {
+            background: var(--surface-elevated);
+            color: var(--text);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* ===== HISTORY SCREEN ===== */
+        .history-screen {
+            padding: 20px;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .history-card {
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .history-card:active { transform: scale(0.98); }
+
+        .history-card-time {
+            font-size: 13px;
+            color: var(--accent-light);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .history-card-text {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            gap: 16px;
+        }
+
+        .empty-state-icon { font-size: 64px; opacity: 0.5; }
+        .empty-state-text { font-size: 18px; font-weight: 600; }
+
+        /* ===== SETTINGS SCREEN ===== */
+        .settings-screen {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .settings-group {
+            margin-bottom: 24px;
+        }
+
+        .settings-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .settings-card {
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .settings-row:last-child { border-bottom: none; }
+
+        .settings-row-label {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .settings-row-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .toggle {
+            width: 52px;
+            height: 32px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--surface-elevated);
+            border-radius: 100px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 1px solid var(--glass-border);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .toggle:checked { background: var(--accent); border-color: var(--accent); }
+        .toggle:checked::after { transform: translateX(20px); }
+
+        .settings-select {
+            background: var(--surface-elevated);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 600;
+            outline: none;
+            min-width: 140px;
+        }
+
+        .danger-btn {
+            width: 100%;
+            height: 52px;
+            border-radius: var(--radius-sm);
+            background: rgba(248,113,113,0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .danger-btn:active { transform: scale(0.98); background: rgba(248,113,113,0.2); }
+
+        /* ===== MEDICINE ALERTS ===== */
+        .medicine-block {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .medicine-block.visible { display: flex; }
+
+        .alert-card {
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid;
+        }
+
+        .alert-card.danger {
+            background: rgba(248,113,113,0.08);
+            border-color: rgba(248,113,113,0.3);
+        }
+
+        .alert-card.success {
+            background: rgba(52,211,153,0.08);
+            border-color: rgba(52,211,153,0.3);
+        }
+
+        .alert-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .alert-title.danger { color: var(--danger); }
+        .alert-title.success { color: var(--success); }
+
+        .alert-body {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        /* ===== LOADER ===== */
+        .loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,15,26,0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .loader-overlay.active { display: flex; }
+
+        .loader-ring {
+            width: 64px;
+            height: 64px;
+            border: 4px solid var(--surface);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        /* ===== INSTALL BANNER ===== */
+        .install-banner {
+            position: fixed;
+            bottom: 90px;
+            left: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 16px 20px;
+            border-radius: var(--radius-sm);
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: 0 8px 32px var(--accent-glow);
+            z-index: 500;
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .install-banner.visible { display: flex; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .install-banner-text {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .install-banner-btn {
+            background: white;
+            color: var(--accent);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .install-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--surface-solid);
+            border: 1px solid var(--glass-border);
+            padding: 14px 24px;
+            border-radius: 100px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            box-shadow: var(--shadow);
+            z-index: 2000;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* ===== UTILS ===== */
+        canvas { display: none; }
+        input[type="file"] { display: none; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--surface-elevated); border-radius: 3px; }
+
+        /* Safe area for notch */
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+</head>
+<body>
+
+    <!-- SPLASH -->
+    <div id="splash">
+        <div class="splash-logo">
+            <i class="ph ph-eye" style="font-size:60px; color:white;"></i>
+        </div>
+        <div class="splash-title">ReadEasy</div>
+        <div class="splash-subtitle">Text Reader for Low Vision</div>
+        <div class="splash-loader"></div>
+    </div>
+
+    <!-- APP -->
+    <div id="app">
+
+        <!-- ===== CAMERA SCREEN ===== -->
+        <div id="screen-camera" class="screen camera-screen active">
+            <div class="camera-viewport">
+                <video id="video" autoplay playsinline muted></video>
+                <div class="camera-overlay">
+                    <div class="camera-top-bar">
+                        <div class="camera-hint-pill">📷 Point at text</div>
+                        <button class="camera-side-btn" id="btn-flash" title="Flash">
+                            <i class="ph ph-lightning" style="font-size:24px; color:white;"></i>
+                        </button>
+                    </div>
+                    <div class="camera-bottom-actions">
+                        <button class="camera-side-btn" id="btn-upload" title="Upload">
+                            <i class="ph ph-folder-open" style="font-size:24px; color:white;"></i>
+                        </button>
+                        <button class="fab-capture" id="btn-capture">
+                            <i class="ph ph-camera" style="font-size:28px; color:white;"></i>
+                        </button>
+                        <button class="camera-side-btn" id="btn-loupe" title="Loupe">
+                            <i class="ph ph-magnifying-glass-plus" style="font-size:24px; color:white;"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="camera-zoom-control">
+                    <input type="range" id="zoom-slider" class="zoom-slider" min="1" max="3" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== RESULT SCREEN ===== -->
+        <div id="screen-result" class="screen result-screen">
+            <div class="result-header">
+                <div class="result-title"><i class="ph ph-text-t" style="font-size:24px;"></i> Recognized Text</div>
+                <div style="display:flex; gap:8px;">
+                    <button class="icon-btn" id="btn-speak" title="Read Aloud">
+                        <i class="ph ph-speaker-high" style="font-size:22px;"></i>
+                    </button>
+                    <button class="icon-btn" id="btn-copy" title="Copy">
+                        <i class="ph ph-copy" style="font-size:22px;"></i>
+                    </button>
+                    <button class="icon-btn" id="btn-close-result" title="Close">
+                        <i class="ph ph-x" style="font-size:22px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="medicine-block" id="medicine-block">
+                <div class="alert-card danger">
+                    <div class="alert-title danger"><i class="ph ph-warning" style="font-size:28px; color:#f87171;"></i> Warning</div>
+                    <div class="alert-body" id="med-warnings">—</div>
+                </div>
+                <div class="alert-card success">
+                    <div class="alert-title success"><i class="ph ph-pill" style="font-size:28px; color:#34d399;"></i> Dosage</div>
+                    <div class="alert-body" id="med-dosage">—</div>
+                </div>
+            </div>
+
+            <div class="font-toolbar">
+                <button class="font-btn" id="font-minus">A−</button>
+                <div class="font-label" id="font-label">32 pt</div>
+                <button class="font-btn" id="font-plus">A+</button>
+            </div>
+
+            <div class="text-card">
+                <div class="text-content" id="text-display"></div>
+            </div>
+
+            <div class="action-bar">
+                <button class="action-btn action-btn-primary" id="btn-read-aloud">
+                    <span><i class="ph ph-speaker-high" style="font-size:20px;"></i></span> Read Aloud
+                </button>
+                <button class="action-btn action-btn-secondary" id="btn-new-scan">
+                    <span><i class="ph ph-camera" style="font-size:20px;"></i></span> New Scan
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== HISTORY SCREEN ===== -->
+        <div id="screen-history" class="screen history-screen">
+            <div class="result-header">
+                <div class="result-title"><i class="ph ph-clock-counter-clockwise" style="font-size:24px;"></i> History</div>
+                <button class="icon-btn" id="btn-clear-history" title="Clear">
+                    <i class="ph ph-trash" style="font-size:22px;"></i>
+                </button>
+            </div>
+            <div class="history-list" id="history-list">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <div class="empty-state-text">History is empty</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SETTINGS SCREEN ===== -->
+        <div id="screen-settings" class="screen settings-screen">
+            <div class="result-header" style="margin-bottom:8px;">
+                <div class="result-title"><i class="ph ph-gear" style="font-size:24px;"></i> Settings</div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">Speech</div>
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Auto Speak</div>
+                            <div class="settings-row-desc">Read text immediately after scanning</div>
+                        </div>
+                        <input type="checkbox" class="toggle" id="toggle-auto-speak" checked>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Speech Rate</div>
+                            <div class="settings-row-desc">Slower for elderly</div>
+                        </div>
+                        <select class="settings-select" id="select-rate">
+                            <option value="0.6">0.6× Slow</option>
+                            <option value="0.8" selected>0.8× Normal</option>
+                            <option value="1.0">1.0× Fast</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Speech Language</div>
+                        </div>
+                        <select class="settings-select" id="select-speech-lang">
+                            <option value="ru-RU">Русский</option>
+                            <option value="en-US">English</option>
+                            <option value="de-DE">Deutsch</option>
+                            <option value="fr-FR">Français</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">OCR</div>
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Text Language</div>
+                        </div>
+                        <select class="settings-select" id="select-ocr-lang">
+                            <option value="rus" selected>Русский</option>
+                            <option value="eng">English</option>
+                            <option value="rus+eng">Русский + English</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">“Medicine” Mode</div>
+                            <div class="settings-row-desc">Highlight dosages and warnings</div>
+                        </div>
+                        <input type="checkbox" class="toggle" id="toggle-medicine">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">Appearance</div>
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Light Theme</div>
+                            <div class="settings-row-desc">Switch the appearance</div>
+                        </div>
+                        <input type="checkbox" class="toggle" id="toggle-theme">
+                    </div>
+                </div>
+            </div>
+
+            <button class="danger-btn" id="btn-reset">Reset All Settings</button>
+        </div>
+
+        <!-- BOTTOM NAV -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-screen="camera">
+                <span class="nav-icon">
+                    <i class="ph ph-camera" style="font-size:24px;"></i>
+                </span>
+                <span>Camera</span>
+            </button>
+            <button class="nav-item" data-screen="history">
+                <span class="nav-icon">
+                    <i class="ph ph-clock-counter-clockwise" style="font-size:24px;"></i>
+                </span>
+                <span>History</span>
+            </button>
+            <button class="nav-item" data-screen="settings">
+                <span class="nav-icon">
+                    <i class="ph ph-gear" style="font-size:24px;"></i>
+                </span>
+                <span>Settings</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- INSTALL BANNER -->
+    <div class="install-banner" id="install-banner">
+        <span class="install-banner-text">📲 Install the app on your home screen</span>
+        <button class="install-banner-btn" id="install-btn">Install</button>
+        <button class="install-close" id="install-close">
+            <i class="ph ph-x" style="font-size:22px;"></i>
+        </button>
+    </div>
+
+    <!-- LOADER -->
+    <div class="loader-overlay" id="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-text" id="loader-text">Recognizing text...</div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <canvas id="canvas"></canvas>
+    <input type="file" id="file-input" accept="image/*">
+
+    <script>
+        // ==================== CONFIG ====================
+        const API_BASE = window.location.origin;
+        let currentStream = null;
+        let currentImage = null;
+        let currentText = '';
+        let fontSize = 32;
+        let isLoupe = false;
+        let deferredPrompt = null;
+
+        // ==================== STATE ====================
+        const state = {
+            autoSpeak: true,
+            speechRate: 0.8,
+            speechLang: 'ru-RU',
+            ocrLang: 'rus',
+            medicineMode: false,
+            theme: 'dark',
+            history: JSON.parse(localStorage.getItem('krupno_history_v3') || '[]')
+        };
+
+        // ==================== DOM ====================
+        const $ = id => document.getElementById(id);
+        const screens = {
+            camera: $('screen-camera'),
+            result: $('screen-result'),
+            history: $('screen-history'),
+            settings: $('screen-settings')
+        };
+
+        // ==================== SPLASH ====================
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                $('splash').classList.add('hidden');
+                $('app').classList.add('ready');
+                startCamera();
+            }, 1500);
+        });
+
+        // ==================== NAVIGATION ====================
+        function showScreen(name) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[name].classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.screen === name);
+            });
+
+            if (name === 'history') renderHistory();
+            if (name === 'camera') startCamera();
+            if (name !== 'camera') stopCamera();
+        }
+
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.addEventListener('click', () => showScreen(btn.dataset.screen));
+        });
+
+        // ==================== CAMERA ====================
+        async function startCamera() {
+            if (currentStream) return;
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+                });
+                $('video').srcObject = currentStream;
+
+                const track = currentStream.getVideoTracks()[0];
+                const caps = track.getCapabilities();
+                const slider = $('zoom-slider');
+                if (caps.zoom) {
+                    slider.min = caps.zoom.min;
+                    slider.max = caps.zoom.max;
+                    slider.step = caps.zoom.step || 0.1;
+                    slider.value = caps.zoom.min;
+                    slider.oninput = e => track.applyConstraints({ advanced: [{ zoom: e.target.value }] });
+                }
+            } catch (e) {
+                toast('Failed to turn on camera. Please allow camera access and try again.');
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(t => t.stop());
+                currentStream = null;
+            }
+        }
+
+        // ==================== CAPTURE ====================
+        $('btn-capture').addEventListener('click', async () => {
+            if (!currentStream) return;
+            const video = $('video');
+            const canvas = $('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            currentImage = canvas.toDataURL('image/jpeg', 0.95);
+            await processImage(currentImage);
+        });
+
+        // ==================== UPLOAD ====================
+        $('btn-upload').addEventListener('click', () => $('file-input').click());
+        $('file-input').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => { currentImage = ev.target.result; processImage(currentImage); };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        });
+
+        // ==================== LOUPE ====================
+        $('btn-loupe').addEventListener('click', () => {
+            isLoupe = !isLoupe;
+            $('video').style.transform = isLoupe ? 'scale(2.5)' : 'scale(1)';
+            $('video').style.transformOrigin = 'center';
+            $('btn-loupe').style.background = isLoupe ? 'var(--accent)' : '';
+            toast(isLoupe ? '🔍 Loupe Mode' : '🔍 Normal Mode');
+        });
+
+        // ==================== FLASH ====================
+        let torchOn = false;
+        $('btn-flash').addEventListener('click', async () => {
+            if (!currentStream) return;
+            const track = currentStream.getVideoTracks()[0];
+            const caps = track.getCapabilities();
+            if (caps.torch) {
+                torchOn = !torchOn;
+                await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+                $('btn-flash').style.opacity = torchOn ? '1' : '0.6';
+            }
+        });
+
+        // ==================== OCR ====================
+        async function processImage(imageData) {
+            showLoader('Recognizing text...');
+            try {
+                const res = await fetch(`${API_BASE}/api/recognize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: imageData,
+                        lang: state.ocrLang,
+                        preprocess: true,
+                        small_text: true
+                    })
+                });
+                const data = await res.json();
+                hideLoader();
+
+                if (data.success && data.text) {
+                    currentText = data.text;
+                    showResult(currentText);
+                    saveHistory(currentText);
+                    if ('vibrate' in navigator) navigator.vibrate([80, 40, 80]);
+                    if (state.autoSpeak) setTimeout(() => speak(currentText), 400);
+                } else {
+                    toast('❌ Text not recognized. Please try again.');
+                }
+            } catch (e) {
+                hideLoader();
+                toast('❌ Network error');
+            }
+        }
+
+        // ==================== RESULT ====================
+        function showResult(text) {
+            $('text-display').textContent = text;
+            $('text-display').style.fontSize = fontSize + 'px';
+            $('font-label').textContent = fontSize + ' pt';
+
+            const medBlock = $('medicine-block');
+            if (state.medicineMode) {
+                medBlock.classList.add('visible');
+                parseMedicine(text);
+            } else {
+                medBlock.classList.remove('visible');
+            }
+            showScreen('result');
+        }
+
+        function parseMedicine(text) {
+            const dosage = text.match(/\b\d+\s*(мг|г|мл|табл|капс|капель|раз|капсул|доз)\b/gi) || [];
+            const warnings = text.match(/\b(не\s+(принимать|превышать|совмещать)|осторожно|вредно|противопоказан|беремен|детям|аллерг|побочн)\b/gi) || [];
+            $('med-dosage').textContent = dosage.length ? dosage.join(', ') : 'Не найдено';
+            $('med-warnings').textContent = warnings.length ? warnings.join(', ') : 'Не найдено';
+        }
+
+        // ==================== FONT SIZE ====================
+        $('font-plus').addEventListener('click', () => { if (fontSize < 80) { fontSize += 6; updateFont(); } });
+        $('font-minus').addEventListener('click', () => { if (fontSize > 18) { fontSize -= 6; updateFont(); } });
+        function updateFont() {
+            $('text-display').style.fontSize = fontSize + 'px';
+            $('font-label').textContent = fontSize + ' пт';
+        }
+
+        // ==================== TTS ====================
+        let utterance = null;
+        function speak(text) {
+            if (!text) return;
+            window.speechSynthesis.cancel();
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = state.speechLang;
+            utterance.rate = state.speechRate;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+
+            const words = text.split(/\s+/);
+            utterance.onboundary = e => {
+                if (e.name === 'word') {
+                    // Simple word highlighting approximation
+                }
+            };
+            utterance.onend = () => {
+                $('text-display').innerHTML = $('text-display').textContent;
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        $('btn-speak').addEventListener('click', () => speak(currentText));
+        $('btn-read-aloud').addEventListener('click', () => speak(currentText));
+
+        // ==================== COPY ====================
+        $('btn-copy').addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(currentText);
+                toast('📋 Copied to clipboard');
+                if ('vibrate' in navigator) navigator.vibrate(30);
+            } catch { toast('Failed to copy text'); }
+        });
+
+        $('btn-close-result').addEventListener('click', () => {
+            window.speechSynthesis.cancel();
+            showScreen('camera');
+        });
+
+        $('btn-new-scan').addEventListener('click', () => {
+            window.speechSynthesis.cancel();
+            showScreen('camera');
+        });
+
+        // ==================== HISTORY ====================
+        function saveHistory(text) {
+            const record = { id: Date.now(), text: text.substring(0, 300), fullText: text, time: new Date().toLocaleString('ru-RU') };
+            state.history.unshift(record);
+            if (state.history.length > 30) state.history.pop();
+            localStorage.setItem('krupno_history_v3', JSON.stringify(state.history));
+        }
+
+        function renderHistory() {
+            const list = $('history-list');
+            if (!state.history.length) {
+                list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">History is empty</div></div>`;
+                return;
+            }
+            list.innerHTML = state.history.map(h => `
+                <div class="history-card" onclick="loadHistory(${h.id})">
+                    <div class="history-card-time">${h.time}</div>
+                    <div class="history-card-text">${h.text}</div>
+                </div>
+            `).join('');
+        }
+
+        window.loadHistory = function(id) {
+            const item = state.history.find(h => h.id === id);
+            if (item) { currentText = item.fullText; showResult(currentText); }
+        };
+
+        $('btn-clear-history').addEventListener('click', () => {
+            if (confirm('Clear history?')) {
+                state.history = [];
+                localStorage.removeItem('krupno_history_v3');
+                renderHistory();
+                toast('History cleared');
+            }
+        });
+
+        // ==================== SETTINGS ====================
+        function loadSettings() {
+            $('toggle-auto-speak').checked = state.autoSpeak;
+            $('select-rate').value = state.speechRate;
+            $('select-speech-lang').value = state.speechLang;
+            $('select-ocr-lang').value = state.ocrLang;
+            $('toggle-medicine').checked = state.medicineMode;
+            $('toggle-theme').checked = state.theme === 'light';
+            if (state.theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        }
+
+        $('toggle-auto-speak').addEventListener('change', e => { state.autoSpeak = e.target.checked; saveState(); });
+        $('select-rate').addEventListener('change', e => { state.speechRate = parseFloat(e.target.value); saveState(); });
+        $('select-speech-lang').addEventListener('change', e => { state.speechLang = e.target.value; saveState(); });
+        $('select-ocr-lang').addEventListener('change', e => { state.ocrLang = e.target.value; saveState(); });
+        $('toggle-medicine').addEventListener('change', e => { state.medicineMode = e.target.checked; saveState(); });
+        $('toggle-theme').addEventListener('change', e => {
+            state.theme = e.target.checked ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', state.theme);
+            saveState();
+        });
+        $('btn-reset').addEventListener('click', () => {
+            if (confirm('Reset all settings?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        });
+
+        function saveState() {
+            localStorage.setItem('krupno_state_v3', JSON.stringify({
+                autoSpeak: state.autoSpeak,
+                speechRate: state.speechRate,
+                speechLang: state.speechLang,
+                ocrLang: state.ocrLang,
+                medicineMode: state.medicineMode,
+                theme: state.theme
+            }));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('krupno_state_v3');
+            if (saved) {
+                const s = JSON.parse(saved);
+                state.autoSpeak = s.autoSpeak ?? true;
+                state.speechRate = s.speechRate ?? 0.8;
+                state.speechLang = s.speechLang ?? 'ru-RU';
+                state.ocrLang = s.ocrLang ?? 'rus';
+                state.medicineMode = s.medicineMode ?? false;
+                state.theme = s.theme ?? 'dark';
+            }
+            loadSettings();
+        }
+        loadState();
+
+        // ==================== UI HELPERS ====================
+        function showLoader(text) {
+            $('loader-text').textContent = text;
+            $('loader').classList.add('active');
+        }
+        function hideLoader() { $('loader').classList.remove('active'); }
+
+        function toast(msg) {
+            const t = $('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ==================== PWA INSTALL ====================
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredPrompt = e;
+            $('install-banner').classList.add('visible');
+        });
+
+        $('install-btn').addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                toast('✅ Installation started');
+                $('install-banner').classList.remove('visible');
+            }
+            deferredPrompt = null;
+        });
+
+        $('install-close').addEventListener('click', () => {
+            $('install-banner').classList.remove('visible');
+        });
+
+        // ==================== SERVICE WORKER ====================
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(() => console.log('SW registered'))
+                .catch(err => console.log('SW error', err));
+        }
+
+        // ==================== PREVENT ACCIDENTAL CLOSE ====================
+        window.addEventListener('beforeunload', e => {
+            if (window.speechSynthesis.speaking) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>

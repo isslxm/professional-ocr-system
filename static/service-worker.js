@@ -1,44 +1,30 @@
-const CACHE_NAME = 'ocr-pro-v1.0.1';
-const urlsToCache = [
+const CACHE_NAME = 'krupno-v3.0.0';
+const STATIC_ASSETS = [
   '/',
   '/static/manifest.json'
 ];
 
-// Install - ВАЖНО: skipWaiting()
+// Install
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing...');
-  
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Caching');
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        console.log('[SW] Skip waiting');
-        return self.skipWaiting(); // ← ЭТО ВАЖНО!
-      })
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate - ВАЖНО: clients.claim()
+// Activate
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating...');
-  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
       );
-    }).then(() => {
-      console.log('[SW] Claiming clients');
-      return self.clients.claim(); // ← ЭТО ВАЖНО!
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -48,18 +34,16 @@ self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('/api/')) return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (!response || response.status !== 200) {
+    caches.match(event.request).then((cached) => {
+      return cached || fetch(event.request).then((response) => {
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         return response;
-      })
-      .catch(() => caches.match(event.request))
+      });
+    })
   );
 });
 

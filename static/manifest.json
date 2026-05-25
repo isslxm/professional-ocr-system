@@ -1,65 +1,40 @@
 {
-  "name": "Professional OCR System",
-  "short_name": "OCR Pro",
-  "description": "AI-Powered Text Recognition, Translation & Speech",
+  "name": "ReadEasy",
+  "short_name": "ReadEasy",
+  "description": "Application for the elderly and visually impaired. Point the camera at text, and it will become large and spoken.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#667eea",
-  "theme_color": "#667eea",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a",
   "orientation": "portrait",
+  "scope": "/",
+  "id": "/",
   "icons": [
+        { "src": "/static/icons/web/favicon.ico", "type": "image/x-icon", "sizes": "16x16 32x32" },
+        { "src": "/static/icons/web/icon-192.png", "type": "image/png", "sizes": "192x192" },
+        { "src": "/static/icons/web/icon-512.png", "type": "image/png", "sizes": "512x512" },
+        { "src": "/static/icons/web/icon-192-maskable.png", "type": "image/png", "sizes": "192x192", "purpose": "maskable" },
+        { "src": "/static/icons/web/icon-512-maskable.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ],
+  "categories": ["accessibility", "health", "utilities"],
+  "screenshots": [
     {
-      "src": "/static/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/static/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/static/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/static/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/static/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/static/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/static/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/static/icons/icon-512x512.png",
+      "src": "/static/icons/web/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "form_factor": "narrow",
+      "label": "Main screen with camera"
     }
   ],
-  "categories": [
-    "productivity",
-    "utilities",
-    "education"
-  ]
+  "shortcuts": [
+    {
+      "name": "Take a photo",
+      "short_name": "Camera",
+      "description": "Quick text recognition",
+      "url": "/",
+      "icons": [{ "src": "/static/icons/web/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }
