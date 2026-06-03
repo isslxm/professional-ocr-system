@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-PWA Setup Script
-Генерирует иконки и настраивает структуру для PWA
-"""
-
 import os
 from PIL import Image, ImageDraw, ImageFont
 import json

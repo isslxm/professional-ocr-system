@@ -96,12 +96,12 @@ class OCRProcessor:
             )
 
             # 11. Морфология: закрытие для соединения разорванных букв
-            kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
-            closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel_close)
+            # kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+            # closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel_close)
 
             # 12. Открытие для удаления шума
-            kernel_open = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
-            processed = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel_open)
+            # kernel_open = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
+            # processed = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel_open)
 
             # Сохраняем отладочные изображения
             if save_debug:
@@ -112,7 +112,7 @@ class OCRProcessor:
                     '04_denoised': denoised,
                     '05_sharpened': sharpened2,
                     '06_binary': binary,
-                    '07_final': processed
+                    # '07_final': processed
                 }
                 for name, img in debug_images.items():
                     if len(img.shape) == 2:
@@ -120,7 +120,7 @@ class OCRProcessor:
                     else:
                         cv2.imwrite(f'{DEBUG_FOLDER}/{name}.jpg', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
 
-            return Image.fromarray(processed)
+            # return Image.fromarray(processed)
 
         except Exception as e:
             print(f"❌ Ошибка предобработки: {e}")
