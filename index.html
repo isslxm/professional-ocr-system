@@ -79,6 +79,245 @@
             touch-action: manipulation;
         }
 
+        /* ===== AUTH SCREEN ===== */
+        #auth-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 9000;
+            overflow-y: auto;
+            padding: 40px 24px;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        #auth-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-20px);
+        }
+
+        .auth-logo {
+            width: 88px;
+            height: 88px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+            box-shadow: 0 16px 48px var(--accent-glow);
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .auth-title {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .auth-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 32px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 4px;
+            margin-bottom: 24px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .auth-tab.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .auth-form {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .auth-form.active { display: flex; }
+
+        .auth-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .auth-input-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-input {
+            height: 56px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--glass-border);
+            background: var(--surface);
+            color: var(--text);
+            padding: 0 18px;
+            font-size: 17px;
+            font-weight: 500;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .auth-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .auth-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .auth-btn {
+            height: 56px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px var(--accent-glow);
+            transition: var(--transition);
+            margin-top: 6px;
+        }
+
+        .auth-btn:active { transform: scale(0.97); }
+
+        .auth-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .auth-error {
+            color: var(--danger);
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        .auth-hint {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .auth-guest-btn {
+            height: 52px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--glass-border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 12px;
+        }
+
+        .auth-guest-btn:active { transform: scale(0.97); background: var(--surface); }
+
+        /* ===== USER INFO IN SETTINGS ===== */
+        .user-info-card {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .user-info-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-info-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-info-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .user-info-email {
+            font-size: 14px;
+            color: rgba(255,255,255,0.75);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-logout-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .user-logout-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.9); }
+
         /* ===== SPLASH SCREEN ===== */
         #splash {
             position: fixed;
@@ -486,15 +725,41 @@
             padding: 16px;
             cursor: pointer;
             transition: var(--transition);
+            position: relative;
         }
 
         .history-card:active { transform: scale(0.98); }
+
+        .history-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+            gap: 8px;
+        }
+
+        .history-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
 
         .history-card-time {
             font-size: 13px;
             color: var(--accent-light);
             font-weight: 600;
-            margin-bottom: 6px;
+        }
+
+        .history-card-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: var(--accent-glow);
+            color: var(--accent-light);
+            white-space: nowrap;
         }
 
         .history-card-text {
@@ -506,6 +771,24 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
+        .history-card-delete {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .history-card-delete:active { color: var(--danger); transform: scale(0.9); }
 
         .empty-state {
             flex: 1;
@@ -789,6 +1072,59 @@
 </head>
 <body>
 
+    <!-- AUTH SCREEN -->
+    <div id="auth-screen">
+        <div class="auth-logo">
+            <i class="ph ph-eye" style="font-size:44px; color:white;"></i>
+        </div>
+        <div class="auth-title">ReadEasy</div>
+        <div class="auth-subtitle">Sign in to save your scans</div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login" id="tab-login">Sign In</button>
+            <button class="auth-tab" data-tab="register" id="tab-register">Get Started</button>
+        </div>
+
+        <!-- Login Form -->
+        <form class="auth-form active" id="form-login">
+            <div class="auth-input-group">
+                <label class="auth-input-label">Email</label>
+                <input type="email" class="auth-input" id="login-email" placeholder="you@example.com" required>
+            </div>
+            <div class="auth-input-group">
+                <label class="auth-input-label">Password</label>
+                <input type="password" class="auth-input" id="login-password" placeholder="Min. 6 characters" required>
+            </div>
+            <div class="auth-error" id="login-error"></div>
+            <button type="submit" class="auth-btn" id="login-btn">Sign In</button>
+        </form>
+
+        <!-- Register Form -->
+        <form class="auth-form" id="form-register">
+            <div class="auth-input-group">
+                <label class="auth-input-label">Username</label>
+                <input type="text" class="auth-input" id="reg-username" placeholder="Your name" required>
+            </div>
+            <div class="auth-input-group">
+                <label class="auth-input-label">Email</label>
+                <input type="email" class="auth-input" id="reg-email" placeholder="you@example.com" required>
+            </div>
+            <div class="auth-input-group">
+                <label class="auth-input-label">Password</label>
+                <input type="password" class="auth-input" id="reg-password" placeholder="Min. 6 characters" required>
+            </div>
+            <div class="auth-error" id="reg-error"></div>
+            <button type="submit" class="auth-btn" id="reg-btn">Create Account</button>
+        </form>
+
+        <div class="auth-hint id="auth-hint" style="margin-top: 20px; max-width: 360px;">
+            Your scans are saved to the cloud and synced across devices.
+        </div>
+        <button class="auth-guest-btn" id="btn-guest" style="max-width: 360px; width: 100%;">
+            <span><i class="ph ph-arrow-right" style="font-size:16px;"></i></span> Continue Without Account
+        </button>
+    </div>
+
     <!-- SPLASH -->
     <div id="splash">
         <div class="splash-logo">
@@ -901,6 +1237,18 @@
                 <div class="result-title"><i class="ph ph-gear" style="font-size:24px;"></i> Settings</div>
             </div>
 
+            <!-- User Info Card -->
+            <div class="user-info-card" id="user-info-card" style="display: none;">
+                <div class="user-info-avatar" id="user-avatar">?</div>
+                <div class="user-info-details">
+                    <div class="user-info-name" id="user-name">Guest</div>
+                    <div class="user-info-email" id="user-email">Not signed in</div>
+                </div>
+                <button class="user-logout-btn" id="btn-logout" title="Sign Out">
+                    <i class="ph ph-sign-out"></i>
+                </button>
+            </div>
+
             <div class="settings-group">
                 <div class="settings-label">Speech</div>
                 <div class="settings-card">
@@ -951,7 +1299,7 @@
                     </div>
                     <div class="settings-row">
                         <div>
-                            <div class="settings-row-label">“Medicine” Mode</div>
+                            <div class="settings-row-label">"Medicine" Mode</div>
                             <div class="settings-row-desc">Highlight dosages and warnings</div>
                         </div>
                         <input type="checkbox" class="toggle" id="toggle-medicine">
@@ -1029,7 +1377,14 @@
         let isLoupe = false;
         let deferredPrompt = null;
 
-        // ==================== STATE ====================
+        // ==================== AUTH STATE ====================
+        const authState = {
+            authenticated: false,
+            user: null,
+            checking: true
+        };
+
+        // ==================== APP STATE ====================
         const state = {
             autoSpeak: true,
             speechRate: 0.8,
@@ -1037,7 +1392,8 @@
             ocrLang: 'rus',
             medicineMode: false,
             theme: 'dark',
-            history: JSON.parse(localStorage.getItem('krupno_history_v3') || '[]')
+            // Local fallback history for guests
+            localHistory: JSON.parse(localStorage.getItem('krupno_history_v3') || '[]')
         };
 
         // ==================== DOM ====================
@@ -1049,12 +1405,209 @@
             settings: $('screen-settings')
         };
 
-        // ==================== SPLASH ====================
-        window.addEventListener('load', () => {
+        // ==================== AUTH API ====================
+        async function apiCheckSession() {
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/me`, {
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (data.authenticated) {
+                    authState.authenticated = true;
+                    authState.user = data.user;
+                }
+            } catch (e) {
+                console.log('Auth check failed:', e);
+            }
+            authState.checking = false;
+        }
+
+        async function apiLogin(email, password) {
+            const res = await fetch(`${API_BASE}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email, password })
+            });
+            return res.json();
+        }
+
+        async function apiRegister(username, email, password) {
+            const res = await fetch(`${API_BASE}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ username, email, password })
+            });
+            return res.json();
+        }
+
+        async function apiLogout() {
+            const res = await fetch(`${API_BASE}/api/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            return res.json();
+        }
+
+        // ==================== HISTORY API ====================
+        async function apiGetHistory(page = 1, perPage = 20) {
+            const res = await fetch(`${API_BASE}/api/history?page=${page}&per_page=${perPage}`, {
+                credentials: 'include'
+            });
+            return res.json();
+        }
+
+        async function apiDeleteHistoryItem(id) {
+            const res = await fetch(`${API_BASE}/api/history/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            return res.json();
+        }
+
+        async function apiClearHistory() {
+            const res = await fetch(`${API_BASE}/api/history`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            return res.json();
+        }
+
+        // ==================== AUTH UI ====================
+        function showAuthScreen() {
+            $('auth-screen').classList.remove('hidden');
+            $('app').style.display = 'none';
+            document.querySelector('.bottom-nav').style.display = 'none';
+        }
+
+        function hideAuthScreen() {
+            $('auth-screen').classList.add('hidden');
+            $('app').style.display = '';
+            document.querySelector('.bottom-nav').style.display = '';
+        }
+
+        function updateUserInfo() {
+            const card = $('user-info-card');
+            if (authState.authenticated && authState.user) {
+                card.style.display = 'flex';
+                $('user-avatar').textContent = authState.user.username.charAt(0).toUpperCase();
+                $('user-name').textContent = authState.user.username;
+                $('user-email').textContent = authState.user.email;
+            } else {
+                card.style.display = 'none';
+            }
+        }
+
+        // ==================== AUTH EVENTS ====================
+        // Tab switching
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const target = tab.dataset.tab;
+                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+                $(`form-${target}`).classList.add('active');
+                $('login-error').textContent = '';
+                $('reg-error').textContent = '';
+            });
+        });
+
+        // Login
+        $('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            $('login-error').textContent = '';
+            $('login-btn').disabled = true;
+
+            const email = $('login-email').value.trim();
+            const password = $('login-password').value;
+
+            try {
+                const data = await apiLogin(email, password);
+                if (data.success) {
+                    authState.authenticated = true;
+                    authState.user = data.user;
+                    toast(`Welcome, ${data.user.username}!`);
+                    hideAuthScreen();
+                    updateUserInfo();
+                    showScreen('camera');
+                } else {
+                    $('login-error').textContent = data.error || 'Login failed';
+                }
+            } catch (err) {
+                $('login-error').textContent = 'Network error. Please try again.';
+            } finally {
+                $('login-btn').disabled = false;
+            }
+        });
+
+        // Register
+        $('form-register').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            $('reg-error').textContent = '';
+            $('reg-btn').disabled = true;
+
+            const username = $('reg-username').value.trim();
+            const email = $('reg-email').value.trim();
+            const password = $('reg-password').value;
+
+            try {
+                const data = await apiRegister(username, email, password);
+                if (data.success) {
+                    authState.authenticated = true;
+                    authState.user = data.user;
+                    toast(`Account created! Welcome, ${data.user.username}!`);
+                    hideAuthScreen();
+                    updateUserInfo();
+                    showScreen('camera');
+                } else {
+                    $('reg-error').textContent = data.error || 'Registration failed';
+                }
+            } catch (err) {
+                $('reg-error').textContent = 'Network error. Please try again.';
+            } finally {
+                $('reg-btn').disabled = false;
+            }
+        });
+
+        // Guest mode
+        $('btn-guest').addEventListener('click', () => {
+            hideAuthScreen();
+            showScreen('camera');
+            toast('Guest mode — history is saved locally');
+        });
+
+        // Logout
+        $('btn-logout').addEventListener('click', async () => {
+            if (!confirm('Sign out?')) return;
+            try {
+                await apiLogout();
+                authState.authenticated = false;
+                authState.user = null;
+                toast('Signed out');
+                showAuthScreen();
+            } catch (e) {
+                toast('Error signing out');
+            }
+        });
+
+        // ==================== SPLASH & INIT ====================
+        window.addEventListener('load', async () => {
+            // Check session first
+            await apiCheckSession();
+
+            // After splash, decide which screen to show
             setTimeout(() => {
                 $('splash').classList.add('hidden');
                 $('app').classList.add('ready');
-                startCamera();
+
+                if (authState.authenticated) {
+                    hideAuthScreen();
+                    updateUserInfo();
+                    showScreen('camera');
+                } else {
+                    showAuthScreen();
+                }
             }, 1500);
         });
 
@@ -1070,6 +1623,7 @@
             if (name === 'history') renderHistory();
             if (name === 'camera') startCamera();
             if (name !== 'camera') stopCamera();
+            if (name === 'settings') updateUserInfo();
         }
 
         document.querySelectorAll('.nav-item').forEach(btn => {
@@ -1116,7 +1670,7 @@
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
             currentImage = canvas.toDataURL('image/jpeg', 0.95);
-            await processImage(currentImage);
+            await processImage(currentImage, 'camera');
         });
 
         // ==================== UPLOAD ====================
@@ -1125,7 +1679,7 @@
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = ev => { currentImage = ev.target.result; processImage(currentImage); };
+            reader.onload = ev => { currentImage = ev.target.result; processImage(currentImage, 'upload'); };
             reader.readAsDataURL(file);
             e.target.value = '';
         });
@@ -1153,17 +1707,19 @@
         });
 
         // ==================== OCR ====================
-        async function processImage(imageData) {
+        async function processImage(imageData, source = 'upload') {
             showLoader('Recognizing text...');
             try {
                 const res = await fetch(`${API_BASE}/api/recognize`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({
                         image: imageData,
                         lang: state.ocrLang,
                         preprocess: true,
-                        small_text: true
+                        small_text: true,
+                        source: source
                     })
                 });
                 const data = await res.json();
@@ -1172,11 +1728,16 @@
                 if (data.success && data.text) {
                     currentText = data.text;
                     showResult(currentText);
-                    saveHistory(currentText);
+                    if (!authState.authenticated) {
+                        saveLocalHistory(currentText);
+                    }
                     if ('vibrate' in navigator) navigator.vibrate([80, 40, 80]);
                     if (state.autoSpeak) setTimeout(() => speak(currentText), 400);
+                } else if (res.status === 401) {
+                    toast('Please sign in to scan');
+                    showAuthScreen();
                 } else {
-                    toast('❌ Text not recognized. Please try again.');
+                    toast(data.error || '❌ Text not recognized. Please try again.');
                 }
             } catch (e) {
                 hideLoader();
@@ -1212,7 +1773,7 @@
         $('font-minus').addEventListener('click', () => { if (fontSize > 18) { fontSize -= 6; updateFont(); } });
         function updateFont() {
             $('text-display').style.fontSize = fontSize + 'px';
-            $('font-label').textContent = fontSize + ' пт';
+            $('font-label').textContent = fontSize + ' pt';
         }
 
         // ==================== TTS ====================
@@ -1226,12 +1787,6 @@
             utterance.pitch = 1;
             utterance.volume = 1;
 
-            const words = text.split(/\s+/);
-            utterance.onboundary = e => {
-                if (e.name === 'word') {
-                    // Simple word highlighting approximation
-                }
-            };
             utterance.onend = () => {
                 $('text-display').innerHTML = $('text-display').textContent;
             };
@@ -1261,40 +1816,177 @@
         });
 
         // ==================== HISTORY ====================
-        function saveHistory(text) {
-            const record = { id: Date.now(), text: text.substring(0, 300), fullText: text, time: new Date().toLocaleString('ru-RU') };
-            state.history.unshift(record);
-            if (state.history.length > 30) state.history.pop();
-            localStorage.setItem('krupno_history_v3', JSON.stringify(state.history));
+        // Server-side history for authenticated users
+        let serverHistory = [];
+        let historyPage = 1;
+        let historyLoading = false;
+        let historyHasMore = true;
+
+        function saveLocalHistory(text) {
+            const record = {
+                id: Date.now(),
+                text: text.substring(0, 300),
+                fullText: text,
+                time: new Date().toLocaleString('ru-RU'),
+                source: 'local'
+            };
+            state.localHistory.unshift(record);
+            if (state.localHistory.length > 30) state.localHistory.pop();
+            localStorage.setItem('krupno_history_v3', JSON.stringify(state.localHistory));
         }
 
-        function renderHistory() {
-            const list = $('history-list');
-            if (!state.history.length) {
-                list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">History is empty</div></div>`;
-                return;
+        async function loadServerHistory(reset = false) {
+            if (!authState.authenticated) return;
+            if (reset) {
+                historyPage = 1;
+                historyHasMore = true;
+                serverHistory = [];
             }
-            list.innerHTML = state.history.map(h => `
-                <div class="history-card" onclick="loadHistory(${h.id})">
-                    <div class="history-card-time">${h.time}</div>
-                    <div class="history-card-text">${h.text}</div>
-                </div>
-            `).join('');
+            if (historyLoading || !historyHasMore) return;
+            historyLoading = true;
+
+            try {
+                const data = await apiGetHistory(historyPage, 20);
+                if (data.success) {
+                    serverHistory = [...serverHistory, ...data.items];
+                    historyPage++;
+                    historyHasMore = historyPage <= data.pages;
+                }
+            } catch (e) {
+                console.log('Failed to load history:', e);
+            } finally {
+                historyLoading = false;
+            }
         }
 
-        window.loadHistory = function(id) {
-            const item = state.history.find(h => h.id === id);
-            if (item) { currentText = item.fullText; showResult(currentText); }
+        async function renderHistory() {
+            const list = $('history-list');
+
+            if (authState.authenticated) {
+                // Server history
+                if (serverHistory.length === 0) {
+                    await loadServerHistory(true);
+                }
+
+                if (serverHistory.length === 0) {
+                    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">No scans yet</div></div>`;
+                    return;
+                }
+
+                list.innerHTML = serverHistory.map(h => `
+                    <div class="history-card" onclick="loadServerItem(${h.id})">
+                        <div class="history-card-header">
+                            <div class="history-card-meta">
+                                <div class="history-card-time">${formatDate(h.created_at)}</div>
+                                <span class="history-card-badge">${h.language || 'ocr'} · ${h.engine || '?'}</span>
+                            </div>
+                            <button class="history-card-delete" onclick="event.stopPropagation(); deleteServerItem(${h.id})" title="Delete">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>
+                        <div class="history-card-text">${escapeHtml(h.extracted_text)}</div>
+                    </div>
+                `).join('');
+            } else {
+                // Local history for guests
+                if (!state.localHistory.length) {
+                    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">History is empty</div></div>`;
+                    return;
+                }
+                list.innerHTML = state.localHistory.map(h => `
+                    <div class="history-card" onclick="loadLocalItem(${h.id})">
+                        <div class="history-card-header">
+                            <div class="history-card-meta">
+                                <div class="history-card-time">${h.time}</div>
+                                <span class="history-card-badge">local</span>
+                            </div>
+                            <button class="history-card-delete" onclick="event.stopPropagation(); deleteLocalItem(${h.id})" title="Delete">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>
+                        <div class="history-card-text">${escapeHtml(h.text)}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        window.loadServerItem = async function(id) {
+            const item = serverHistory.find(h => h.id === id);
+            if (item) {
+                currentText = item.extracted_text;
+                showResult(currentText);
+            }
         };
 
-        $('btn-clear-history').addEventListener('click', () => {
-            if (confirm('Clear history?')) {
-                state.history = [];
+        window.loadLocalItem = function(id) {
+            const item = state.localHistory.find(h => h.id === id);
+            if (item) {
+                currentText = item.fullText || item.text;
+                showResult(currentText);
+            }
+        };
+
+        window.deleteServerItem = async function(id) {
+            try {
+                const data = await apiDeleteHistoryItem(id);
+                if (data.success) {
+                    serverHistory = serverHistory.filter(h => h.id !== id);
+                    renderHistory();
+                    toast('Deleted');
+                }
+            } catch (e) {
+                toast('Error deleting');
+            }
+        };
+
+        window.deleteLocalItem = function(id) {
+            state.localHistory = state.localHistory.filter(h => h.id !== id);
+            localStorage.setItem('krupno_history_v3', JSON.stringify(state.localHistory));
+            renderHistory();
+            toast('Deleted');
+        };
+
+        $('btn-clear-history').addEventListener('click', async () => {
+            if (!confirm('Clear all history?')) return;
+
+            if (authState.authenticated) {
+                try {
+                    const data = await apiClearHistory();
+                    if (data.success) {
+                        serverHistory = [];
+                        renderHistory();
+                        toast('History cleared');
+                    }
+                } catch (e) {
+                    toast('Error clearing history');
+                }
+            } else {
+                state.localHistory = [];
                 localStorage.removeItem('krupno_history_v3');
                 renderHistory();
                 toast('History cleared');
             }
         });
+
+        function formatDate(isoString) {
+            if (!isoString) return '';
+            try {
+                const d = new Date(isoString);
+                return d.toLocaleString('ru-RU', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (e) {
+                return isoString;
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         // ==================== SETTINGS ====================
         function loadSettings() {
@@ -1319,7 +2011,7 @@
         });
         $('btn-reset').addEventListener('click', () => {
             if (confirm('Reset all settings?')) {
-                localStorage.clear();
+                localStorage.removeItem('krupno_state_v3');
                 location.reload();
             }
         });
