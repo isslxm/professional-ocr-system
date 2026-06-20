@@ -71,38 +71,39 @@ with app.app_context():
     db.create_all()
     print("✅ Таблицы БД созданы/проверены")
 
-# ─────────────────────────────────────────────
-# Путь к Tesseract (локально — Windows)
-# На Railway это не нужно, там tesseract в PATH
+
 # ─────────────────────────────────────────────
 TESSERACT_LOCAL = r'C:\Users\Islam Osmonov\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
 if os.path.exists(TESSERACT_LOCAL):
     pytesseract.pytesseract.tesseract_cmd = TESSERACT_LOCAL
 
 # ─────────────────────────────────────────────
-# EasyOCR (опционально)
+# EasyOCR
 # ─────────────────────────────────────────────
-try:
-    import easyocr
-    EASYOCR_AVAILABLE = True
-    print("✅ EasyOCR загружен")
-except ImportError:
-    EASYOCR_AVAILABLE = False
-    print("⚠️ EasyOCR не установлен. pip install easyocr")
+# try:
+#     import easyocr
+#     EASYOCR_AVAILABLE = True
+#     print("✅ EasyOCR загружен")
+# except ImportError:
+#     EASYOCR_AVAILABLE = False
+#     print("⚠️ EasyOCR не установлен. pip install easyocr")
+
+EASYOCR_AVAILABLE = False
+print("EasyOCR turned off for now.")
 
 _easyocr_reader = None
 
 def get_easyocr_reader():
-    global _easyocr_reader
-    if _easyocr_reader is None:
-        print("🔄 Инициализация EasyOCR (~1-2 мин)...")
-        _easyocr_reader = easyocr.Reader(['ru', 'en'], gpu=False)
-        print("✅ EasyOCR готов")
-    return _easyocr_reader
+    # global _easyocr_reader
+    # if _easyocr_reader is None:
+    #     print("🔄 Инициализация EasyOCR (~1-2 мин)...")
+    #     _easyocr_reader = easyocr.Reader(['ru', 'en'], gpu=False)
+    #     print("✅ EasyOCR готов")
+    return None
 
 
 # ═══════════════════════════════════════════════
-# OCR ПРОЦЕССОР (без изменений — твой оригинал)
+# OCR ПРОЦЕССОР
 # ═══════════════════════════════════════════════
 
 class OCRProcessor:
