@@ -6,3 +6,5 @@ audio_output/
 .env
 *.log
 debug/
+*.jpg
+*.png
