@@ -1,91 +1,231 @@
-# Крупно v3.0 — OCR для пожилых и слабовидящих
+# ReadEasy — OCR Text Reader for Seniors & Low Vision Users
 
-## 🚀 Быстрый старт
+> A mobile-first web application that captures text from images or camera, recognizes it using OCR, and reads it aloud — with user accounts and scan history.
 
-### 1. Установи зависимости
-```bash
-pip install flask flask-cors pillow pytesseract numpy opencv-python-headless
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Flask](https://img.shields.io/badge/Flask-3.x-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
+![Railway](https://img.shields.io/badge/Deployed-Railway-purple)
+![PWA](https://img.shields.io/badge/PWA-Ready-orange)
+
+---
+
+## 🌐 Live Demo
+
+**[https://zestful-alignment-production-9e8c.up.railway.app](https://zestful-alignment-production-9e8c.up.railway.app)**
+
+---
+
+## 📖 About
+
+ReadEasy was built as a diploma project for the Diploma in Information Technology program. The target audience is elderly people and users with low vision who struggle with small printed text on medicine labels, receipts, and documents.
+
+The app solves a real accessibility gap — most OCR tools are built for developers, not for everyday users who simply need to read what's in front of them.
+
+---
+
+## ✨ Features
+
+- 📷 **Camera & Upload** — capture text live from the camera or upload from gallery
+- 🔍 **OCR Recognition** — Tesseract engine with multi-strategy image preprocessing
+- 🔤 **Font Scaling** — adjustable font size from 18pt to 80pt
+- 🔊 **Text-to-Speech** — reads recognized text aloud automatically
+- 🔐 **User Authentication** — register and login with Bcrypt-hashed passwords
+- 📋 **Scan History** — every scan saved per user account in PostgreSQL
+- 📱 **PWA** — installable on iOS and Android, works offline
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | HTML5, CSS3, Vanilla JS, PWA |
+| Backend | Python, Flask, Flask-Login, Flask-Bcrypt |
+| OCR | Tesseract, OpenCV, Pillow, NumPy |
+| Database | PostgreSQL, SQLAlchemy, psycopg2 |
+| Deploy | Railway, Gunicorn, GitHub |
+
+---
+
+## 🗂️ Project Structure
+
+```
+professional-ocr-system/
+├── app.py              # Main Flask application, routes, OCR logic
+├── models.py           # Database models (User, ScanHistory)
+├── auth.py             # Authentication blueprint (register/login/logout)
+├── index.html          # Frontend single-page application
+├── requirements.txt    # Python dependencies
+├── Procfile            # Gunicorn start command for Railway
+├── nixpacks.toml       # Tesseract installation config for Railway
+├── railway.json        # Railway builder config
+├── static/
+│   ├── manifest.json       # PWA manifest
+│   ├── service-worker.js   # PWA offline support
+│   └── icons/              # App icons (72px to 512px)
+└── .env.example        # Environment variables template
 ```
 
-### 2. Установи Tesseract OCR
+---
 
-**Windows:**
-1. Скачай с [github.com/UB-Mannheim/tesseract/wiki](https://github.com/UB-Mannheim/tesseract/wiki)
-2. Установи в `C:\Program Files\Tesseract-OCR`
-3. Добавь в PATH: `C:\Program Files\Tesseract-OCR`
-4. Скачай `rus.traineddata` и положи в `C:\Program Files\Tesseract-OCR\tessdata`
+## 🚀 Getting Started
 
-**Проверь:**
+### Prerequisites
+
+- Python 3.11+
+- PostgreSQL
+- Tesseract OCR
+
+### 1. Clone the repository
+
 ```bash
-tesseract --version
-tesseract --list-langs   # должен быть rus
+git clone https://github.com/isslxm/professional-ocr-system.git
+cd professional-ocr-system
 ```
 
-### 3. Сгенерируй иконки
+### 2. Create virtual environment
+
 ```bash
-python generate_icons.py
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# macOS / Linux
+source .venv/bin/activate
 ```
 
-### 4. Запусти сервер
+### 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Install Tesseract
+
+**Windows:** Download from [github.com/UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract/wiki)
+
+**macOS:**
+```bash
+brew install tesseract
+```
+
+**Linux:**
+```bash
+sudo apt install tesseract-ocr tesseract-ocr-rus
+```
+
+### 5. Set up PostgreSQL
+
+```sql
+CREATE DATABASE ocr_db;
+CREATE USER ocr_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE ocr_db TO ocr_user;
+```
+
+### 6. Create `.env` file
+
+```env
+SECRET_KEY=your_random_secret_key
+DATABASE_URL=postgresql://ocr_user:your_password@localhost:5432/ocr_db
+```
+
+Generate a secure secret key:
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+### 7. Run the application
+
 ```bash
 python app.py
 ```
 
-Открой `http://localhost:5000`
+Open [http://localhost:5000](http://localhost:5000)
 
-### 5. Для телефона (HTTPS обязателен для камеры)
-```bash
-# Установи ngrok
-ngrok http 5000
-# Открой https-ссылку на телефоне
+---
+
+## 🌍 Deployment (Railway)
+
+1. Push your code to GitHub
+2. Create a new project on [railway.app](https://railway.app)
+3. Connect your GitHub repository
+4. Add a PostgreSQL database service
+5. Add `SECRET_KEY` to environment variables
+6. Railway auto-deploys on every push to `main`
+
+---
+
+## 🔌 API Endpoints
+
+### Authentication
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Create new account |
+| POST | `/api/auth/login` | Sign in |
+| POST | `/api/auth/logout` | Sign out |
+| GET | `/api/auth/me` | Get current user |
+
+### OCR
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/recognize` | Recognize text from image |
+| GET | `/api/health` | Health check |
+
+### History
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/history` | Get scan history (paginated) |
+| DELETE | `/api/history/<id>` | Delete one record |
+| DELETE | `/api/history` | Clear all history |
+
+---
+
+## 🧠 How OCR Works
+
+The app uses a multi-strategy approach for maximum accuracy:
+
+1. **Standard preprocessing** — grayscale conversion, CLAHE contrast enhancement, adaptive thresholding
+2. **Small text mode** — 2.5x upscaling before recognition
+3. **Dark background mode** — color inversion for light text on dark backgrounds
+4. **Multiple PSM modes** — tries PSM 6, 3, 4, 11 and picks the best result
+
+---
+
+## 📊 Database Schema
+
+```
+users
+├── id (PK)
+├── username
+├── email
+├── password (bcrypt hash)
+└── created_at
+
+scan_history
+├── id (PK)
+├── user_id (FK → users.id)
+├── extracted_text
+├── language
+├── engine
+├── source (upload / camera)
+├── char_count
+└── created_at
 ```
 
-## 📱 Установка на устройство (PWA)
+---
 
-### Android (Chrome)
-1. Открой сайт в Chrome
-2. Появится баннер "Установить приложение"
-3. Нажми "Установить"
-4. Приложение появится на главном экране
+## 👤 Author
 
-### iOS (Safari)
-1. Открой сайт в Safari
-2. Нажми "Поделиться" (Share)
-3. "На экран Домой" (Add to Home Screen)
-4. Нажми "Добавить"
+**Islam Osmonov**
+Diploma in Information Technology
 
-### Windows/Mac (Chrome/Edge)
-1. В адресной строке появится иконка установки (⊕)
-2. Нажми "Установить Крупно"
+---
 
-## ✨ Функции
+## 📄 License
 
-- 📷 **Камера** с зумом и вспышкой
-- 🔍 **Режим лупы** для быстрого увеличения
-- 📝 **OCR** с усилением мелкого текста
-- 🔊 **Озвучка** офлайн через Web Speech API
-- 💊 **Режим "Лекарство"** — выделяет дозировку
-- 📜 **История** последних 30 сканов
-- 🌙 **Тёмная/светлая тема**
-- 📲 **Установка** как нативное приложение
-
-## 🛠️ Структура
-
-```
-├── app.py              # Flask backend
-├── index.html          # Frontend (PWA)
-├── generate_icons.py   # Генератор иконок
-├── static/
-│   ├── manifest.json       # PWA манифест
-│   ├── service-worker.js   # Офлайн-кэш
-│   └── icons/
-│       ├── icon-72x72.png
-│       ├── icon-192x192.png
-│       └── icon-512x512.png
-```
-
-## ⚠️ Важно
-
-- **Камера работает только по HTTPS** — используй ngrok для теста на телефоне
-- **Озвучка работает офлайн** — используется Web Speech API браузера
-- **OCR требует Tesseract** — без него распознавание не работает
+This project was created for academic purposes as part of a diploma program.
