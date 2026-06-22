@@ -143,6 +143,7 @@ class OCRProcessor:
                         cv2.imwrite(f'{DEBUG_FOLDER}/{name}.jpg', img)
                     else:
                         cv2.imwrite(f'{DEBUG_FOLDER}/{name}.jpg', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+            return Image.fromarray(binary)
 
         except Exception as e:
             print(f"❌ Error in preprocessing: {e}")
