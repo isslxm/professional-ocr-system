@@ -16,32 +16,25 @@ from PIL import Image
 from models import db, User, ScanHistory
 from auth import auth, bcrypt
 
-# ─────────────────────────────────────────────
-# Загрузка переменных окружения из .env
-# ─────────────────────────────────────────────
+
 load_dotenv()
 
-# ─────────────────────────────────────────────
-# Создание приложения
-# ─────────────────────────────────────────────
-app = Flask(__name__, template_folder='.', static_folder='static')
-CORS(app, supports_credentials=True)   # supports_credentials нужен для сессий
 
-# ─────────────────────────────────────────────
-# Конфигурация
-# ─────────────────────────────────────────────
+# Application
+app = Flask(__name__, template_folder='.', static_folder='static')
+CORS(app, supports_credentials=True)   # supports_credentials
+
+# Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', '230c4c1e41319d0d4532006a42e630ef8a14057d848874186d9ceb249303b7c5')
 
-# Исправление URL для Railway (postgres:// → postgresql://)
+# Railway (postgres:// → postgresql://)
 database_url = os.getenv('DATABASE_URL', '')
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ─────────────────────────────────────────────
-# Инициализация расширений
-# ─────────────────────────────────────────────
+# Extensions
 db.init_app(app)
 bcrypt.init_app(app)
 
@@ -54,14 +47,12 @@ def load_user(user_id):
 
 @login_manager.unauthorized_handler
 def unauthorized():
-    return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+    return jsonify({'success': False, 'error': 'Authorization required'}), 401
 
-# Регистрация blueprint авторизации (/api/auth/*)
+# blueprint authorization (/api/auth/*)
 app.register_blueprint(auth)
 
-# ─────────────────────────────────────────────
-# Создание папок и таблиц БД
-# ─────────────────────────────────────────────
+
 UPLOAD_FOLDER = 'uploads'
 DEBUG_FOLDER  = 'debug'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -69,42 +60,39 @@ os.makedirs(DEBUG_FOLDER,  exist_ok=True)
 
 with app.app_context():
     db.create_all()
-    print("✅ Таблицы БД созданы/проверены")
+    print("✅ Tables created or already exist.")
 
 
-# ─────────────────────────────────────────────
 TESSERACT_LOCAL = r'C:\Users\Islam Osmonov\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
 if os.path.exists(TESSERACT_LOCAL):
     pytesseract.pytesseract.tesseract_cmd = TESSERACT_LOCAL
 
-# ─────────────────────────────────────────────
+
 # EasyOCR
-# ─────────────────────────────────────────────
+
 # try:
 #     import easyocr
 #     EASYOCR_AVAILABLE = True
-#     print("✅ EasyOCR загружен")
+#     print("✅ EasyOCR installed.")
 # except ImportError:
 #     EASYOCR_AVAILABLE = False
-#     print("⚠️ EasyOCR не установлен. pip install easyocr")
+#     print("⚠️ EasyOCR not installed. pip install easyocr")
 
 EASYOCR_AVAILABLE = False
-print("EasyOCR turned off for now.")
+print("EasyOCR turned off.")
 
 _easyocr_reader = None
 
 def get_easyocr_reader():
     # global _easyocr_reader
     # if _easyocr_reader is None:
-    #     print("🔄 Инициализация EasyOCR (~1-2 мин)...")
+    #     print("🔄 EasyOCR initialization (~1-2 mins)...")
     #     _easyocr_reader = easyocr.Reader(['ru', 'en'], gpu=False)
-    #     print("✅ EasyOCR готов")
+    #     print("✅ EasyOCR ready.")
     return None
 
 
-# ═══════════════════════════════════════════════
-# OCR ПРОЦЕССОР
-# ═══════════════════════════════════════════════
+# OCR Processor
 
 class OCRProcessor:
 
@@ -157,7 +145,7 @@ class OCRProcessor:
                         cv2.imwrite(f'{DEBUG_FOLDER}/{name}.jpg', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
 
         except Exception as e:
-            print(f"❌ Ошибка предобработки: {e}")
+            print(f"❌ Error in preprocessing: {e}")
             return image
 
     @staticmethod
@@ -173,7 +161,7 @@ class OCRProcessor:
             processed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
             return Image.fromarray(processed)
         except Exception as e:
-            print(f"❌ Ошибка стандартной предобработки: {e}")
+            print(f"❌ Error in standard preprocessing: {e}")
             return image
 
     @staticmethod
@@ -188,7 +176,7 @@ class OCRProcessor:
             enhanced  = clahe.apply(upscaled)
             return Image.fromarray(enhanced)
         except Exception as e:
-            print(f"❌ Ошибка инвертированной предобработки: {e}")
+            print(f"❌ Error in inverted preprocessing: {e}")
             return image
 
     @staticmethod
@@ -202,19 +190,21 @@ class OCRProcessor:
             return {'success': True, 'text': cleaned, 'engine': 'tesseract',
                     'psm': psm, 'raw_length': len(text), 'cleaned_length': len(cleaned)}
         except Exception as e:
+            print(f"❌ Error in Tesseract recognition: {e}")
             return {'success': False, 'error': str(e), 'engine': 'tesseract'}
 
     @staticmethod
     def recognize_easyocr(image_np):
         try:
             if not EASYOCR_AVAILABLE:
-                return {'success': False, 'error': 'EasyOCR не установлен', 'engine': 'easyocr'}
+                return {'success': False, 'error': 'EasyOCR not installed', 'engine': 'easyocr'}
             reader  = get_easyocr_reader()
             results = reader.readtext(image_np, detail=0, paragraph=True,
                                       contrast_ths=0.1, adjust_contrast=0.5)
             text = '\n'.join(results) if results else ''
             return {'success': True, 'text': text, 'engine': 'easyocr', 'paragraphs': len(results)}
         except Exception as e:
+            print(f"❌ Error in EasyOCR recognition: {e}")
             return {'success': False, 'error': str(e), 'engine': 'easyocr'}
 
     @staticmethod
@@ -255,7 +245,8 @@ class OCRProcessor:
                 results.append(res)
 
         if not results:
-            return {'success': False, 'text': '', 'error': 'Текст не распознан', 'attempts': 0}
+            print("❌ Text not recognized")
+            return {'success': False, 'text': '', 'error': 'Text not recognized', 'attempts': 0}
 
         best = max(results, key=lambda x: len(x.get('text', '')))
         return {
@@ -272,9 +263,8 @@ class OCRProcessor:
         }
 
 
-# ═══════════════════════════════════════════════
-# РОУТЫ — Статика
-# ═══════════════════════════════════════════════
+
+# Routes — Static and Index
 
 @app.route('/')
 def index():
@@ -285,9 +275,8 @@ def send_static(path):
     return send_from_directory('static', path)
 
 
-# ═══════════════════════════════════════════════
-# РОУТЫ — OCR API
-# ═══════════════════════════════════════════════
+
+# Routes — OCR API
 
 @app.route('/api/health')
 def health():
@@ -306,7 +295,7 @@ def health():
 
 
 @app.route('/api/recognize', methods=['POST'])
-@login_required   # ← теперь только для авторизованных
+@login_required
 def recognize():
     """
     POST /api/recognize
@@ -328,9 +317,9 @@ def recognize():
         source     = data.get('source', 'upload')
 
         if not image_data:
-            return jsonify({'success': False, 'error': 'Изображение не предоставлено'}), 400
+            return jsonify({'success': False, 'error': 'Image not provided'}), 400
 
-        # Декодируем base64
+        # Decode base64
         if ',' in image_data:
             image_data = image_data.split(',')[1]
         image_bytes = base64.b64decode(image_data)
@@ -345,7 +334,6 @@ def recognize():
             image, lang=lang, small_text=small_text, save_debug=save_debug
         )
 
-        # ✅ Сохраняем в историю если успешно
         if result['success'] and result['text']:
             record = ScanHistory(
                 user_id        = current_user.id,
@@ -367,16 +355,15 @@ def recognize():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ═══════════════════════════════════════════════
-# РОУТЫ — История
-# ═══════════════════════════════════════════════
+
+# Routes — History
 
 @app.route('/api/history', methods=['GET'])
 @login_required
 def get_history():
     """
     GET /api/history?page=1&per_page=20
-    Возвращает историю сканирований текущего пользователя.
+    Returns the scan history for the current user.
     """
     page     = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
@@ -414,31 +401,29 @@ def get_history():
 @app.route('/api/history/<int:record_id>', methods=['DELETE'])
 @login_required
 def delete_history_item(record_id):
-    """DELETE /api/history/<id> — удалить одну запись истории."""
+    """DELETE /api/history/<id> — delete one history record."""
     record = ScanHistory.query.filter_by(
         id=record_id, user_id=current_user.id
     ).first()
 
     if not record:
-        return jsonify({'success': False, 'error': 'Запись не найдена'}), 404
+        return jsonify({'success': False, 'error': 'Record not found'}), 404
 
     db.session.delete(record)
     db.session.commit()
-    return jsonify({'success': True, 'message': 'Запись удалена'})
+    return jsonify({'success': True, 'message': 'Record deleted'})
 
 
 @app.route('/api/history', methods=['DELETE'])
 @login_required
 def clear_history():
-    """DELETE /api/history — очистить всю историю пользователя."""
+    """DELETE /api/history — delete all history records for the current user."""
     ScanHistory.query.filter_by(user_id=current_user.id).delete()
     db.session.commit()
-    return jsonify({'success': True, 'message': 'История очищена'})
+    return jsonify({'success': True, 'message': 'History cleared'})
 
 
-# ═══════════════════════════════════════════════
-# РОУТЫ — Отладка
-# ═══════════════════════════════════════════════
+# Routes — Debug
 
 @app.route('/api/debug-images', methods=['GET'])
 def list_debug_images():
@@ -449,13 +434,12 @@ def list_debug_images():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ═══════════════════════════════════════════════
-# ЗАПУСК
-# ═══════════════════════════════════════════════
+
+# Start
 
 if __name__ == '__main__':
     print("\n" + "="*70)
-    print("🚀 OCR System v4.0 — с авторизацией и историей")
+    print("🚀 OCR System v4.0")
     print("="*70)
 
     try:
@@ -465,12 +449,12 @@ if __name__ == '__main__':
         print(f"   ❌ Tesseract: {e}")
 
     if EASYOCR_AVAILABLE:
-        print("   ✅ EasyOCR: доступен")
+        print("   ✅ EasyOCR: available")
     else:
-        print("   ⚠️ EasyOCR: не установлен")
+        print("   ⚠️ EasyOCR: not available")
 
     db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
-    print(f"   🗄️  БД: {'✅ настроена' if db_uri else '❌ DATABASE_URL не задан!'}")
+    print(f"   🗄️  БД: {'✅ managed' if db_uri else '❌ DATABASE_URL not set!'}")
     print("\n🌐 Сервер: http://localhost:5000")
     print("="*70 + "\n")
 
